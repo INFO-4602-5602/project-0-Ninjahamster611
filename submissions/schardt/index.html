@@ -31,6 +31,18 @@
 		cursor: pointer;
 	}
 
+  div.tooltip {
+    position: absolute;
+    text-align: center;
+    width: 60px;
+    height: 28px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
 </style>
 </head>
 
@@ -163,6 +175,74 @@
              .attr("height", function (d) {
                return yScale(max - d['x']) - margin;
              });
+
+             var maxY = d3.max(data, function(d) {
+                           return parseFloat(d['y']);
+                       }) + 1;
+             var minY = d3.min(data, function(d) {
+                           return parseFloat(d['y']);
+                       });
+
+             var xScale2 = d3.scale.linear()
+                                 .domain([0, data.length])
+                                 .range([margin + xOffset, width - margin]);
+
+             var yScale2 = d3.scale.linear()
+                                 .domain([0, maxY])
+                       					.range([height - yOffset - margin, margin]);
+
+             var xAxis2 = d3.svg.axis()
+               							  .scale(xScale2)
+               							  .orient("bottom")
+               							  .ticks(5);
+
+             var yAxis2 = d3.svg.axis()
+                               .scale(yScale2)
+                               .orient("left")
+                               .ticks(5);
+
+       			 var svg2 = d3.select("#barchart")
+             						.append("svg")
+             						.attr("width", width)
+             						.attr("height", height);
+
+             svg2.append("g")
+         				.attr("class", "axis")
+         				.attr("transform", "translate(0," + (height - yOffset) + ")")
+         				.call(xAxis2);
+
+             svg2.append("g")
+                 .attr("class", "axis")
+                 .attr("transform", "translate(" + (xOffset + margin) + "," + margin+ ") ")
+                 .call(yAxis2);
+
+             var xLabel = svg2.append('text')
+                               .attr('class', 'label')
+                               .attr('x', width/2)
+                               .attr('y', height - 50)
+                               .text("X");
+
+             var yLabel = svg2.append('text')
+           										.attr('class', 'label')
+           										.attr('x', xOffset/2)
+           										.attr('y', height/2 - 15)
+           										.text("Y");
+
+             svg2.selectAll("rect")
+                .data(data)
+                .enter()
+                .append("rect")
+                .attr("x", function (d, i) {
+                  return xScale2(i);
+                })
+                .attr("y", function (d) {
+                  console.log(d['y']);
+                  return height - yScale2(maxY - d['y']) - yOffset + margin;
+                })
+                .attr("width", (width-xOffset-(margin*2))/data.length - barPadding)
+                .attr("height", function (d) {
+                  return yScale2(maxY - d['y']) - margin;
+                });
         });
 
         // Put your part three & four code here ***********************
@@ -204,6 +284,10 @@
                             .scale(yScale)
                             .orient("left")
                             .ticks(5);
+
+          var div = d3.select("body").append("div")
+                      .attr("class", "tooltip")
+                      .style("opacity", 0);
 
           var svg = d3.select("#scatterplot")
                       .append("svg")
